@@ -53,8 +53,27 @@ export const AuthProvider = ({ children }) => {
     }
 
     const signOut = async () => {
-        const { error } = await supabase.auth.signOut()
-        return { error }
+        try {
+            const { error } = await supabase.auth.signOut()
+            if (error) {
+                console.error('Error signing out:', error)
+            }
+            // Clear user state immediately
+            setUser(null)
+            setLoading(false)
+
+            // Clear any local storage or session storage
+            localStorage.clear()
+            sessionStorage.clear()
+
+            return { error: null }
+        } catch (error) {
+            console.error('Unexpected error during signout:', error)
+            // Even if there's an error, clear the user state
+            setUser(null)
+            setLoading(false)
+            return { error }
+        }
     }
 
     const value = {

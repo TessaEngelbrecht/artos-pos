@@ -15,7 +15,7 @@ import './App.css'
 
 // Helper function to check if user is admin
 const isAdmin = (email) => {
-  const adminEmails = ['tessa.engelbrecht@gmail.com', 'reubenkruger278@gmail.com']
+  const adminEmails = ['tessa.engelbrecht@gmail.com', 'reubenkruger278@gmail.com', 'engelb.lara@gmail.com']
   return adminEmails.includes(email)
 }
 

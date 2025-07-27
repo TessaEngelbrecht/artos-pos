@@ -18,7 +18,7 @@ export const AdminProvider = ({ children }) => {
     const [loading, setLoading] = useState(true)
 
     // Admin emails list
-    const adminEmails = ['tessa.engelbrecht@gmail.com', 'reubenkruger278@gmail.com']
+    const adminEmails = ['tessa.engelbrecht@gmail.com', 'reubenkruger278@gmail.com', 'engelb.lara@gmail.com']
 
     const checkAdminStatus = useCallback(() => {
         if (user && adminEmails.includes(user.email)) {
@@ -119,17 +119,19 @@ export const AdminProvider = ({ children }) => {
         if (error) throw error
         return data[0]
     }
-
-    // Calculate weekly summary
+    // Update the calculateWeeklySummary function in AdminContext.js
     const calculateWeeklySummary = (orders) => {
         const summary = {
             totalOrders: orders.length,
             totalRevenue: 0,
             totalProfit: 0,
+            totalCost: 0,
             productSummary: {},
             locationSummary: {},
             completedOrders: 0,
-            pendingOrders: 0
+            pendingOrders: 0,
+            breadQuantities: {}, // New: Total bread quantities to order
+            locationBreakdown: {} // New: Bread quantities per location
         }
 
         orders.forEach(order => {
@@ -145,11 +147,18 @@ export const AdminProvider = ({ children }) => {
             if (!summary.locationSummary[order.pickup_location]) {
                 summary.locationSummary[order.pickup_location] = {
                     count: 0,
-                    revenue: 0
+                    revenue: 0,
+                    orders: [] // New: Store orders for this location
                 }
             }
             summary.locationSummary[order.pickup_location].count++
             summary.locationSummary[order.pickup_location].revenue += parseFloat(order.total_amount)
+            summary.locationSummary[order.pickup_location].orders.push(order)
+
+            // Initialize location breakdown for this location
+            if (!summary.locationBreakdown[order.pickup_location]) {
+                summary.locationBreakdown[order.pickup_location] = {}
+            }
 
             // Product summary and profit calculation
             order.order_items.forEach(item => {
@@ -160,23 +169,41 @@ export const AdminProvider = ({ children }) => {
                 const profit = revenue - cost
 
                 summary.totalProfit += profit
+                summary.totalCost += cost
 
+                // Overall bread quantities to order
+                if (!summary.breadQuantities[productName]) {
+                    summary.breadQuantities[productName] = 0
+                }
+                summary.breadQuantities[productName] += quantity
+
+                // Bread quantities per location
+                if (!summary.locationBreakdown[order.pickup_location][productName]) {
+                    summary.locationBreakdown[order.pickup_location][productName] = 0
+                }
+                summary.locationBreakdown[order.pickup_location][productName] += quantity
+
+                // Product summary
                 if (!summary.productSummary[productName]) {
                     summary.productSummary[productName] = {
                         quantity: 0,
                         revenue: 0,
-                        profit: 0
+                        profit: 0,
+                        cost: 0
                     }
                 }
 
                 summary.productSummary[productName].quantity += quantity
                 summary.productSummary[productName].revenue += revenue
                 summary.productSummary[productName].profit += profit
+                summary.productSummary[productName].cost += cost
             })
         })
 
         return summary
     }
+
+
 
     // Get next Wednesday (start of week)
     const getNextWednesday = (date = new Date()) => {

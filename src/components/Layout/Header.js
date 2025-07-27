@@ -5,15 +5,22 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useCart } from '../../contexts/CartContext'
 import { useNavigate } from 'react-router-dom'
 
-
 const Header = () => {
     const { user, signOut } = useAuth()
     const { itemCount } = useCart()
     const navigate = useNavigate()
 
-    const handleSignOut = async () => {
-        await signOut()
-        navigate('/login')
+    const handleSignOut = async (e) => {
+        e.preventDefault()
+        try {
+            await signOut()
+            // Force navigate to login after signout
+            navigate('/login', { replace: true })
+        } catch (error) {
+            console.error('Error signing out:', error)
+            // Still navigate to login even if there's an error
+            navigate('/login', { replace: true })
+        }
     }
 
     return (
@@ -61,7 +68,17 @@ const Header = () => {
                                 </motion.span>
                             )}
                         </motion.button>
-
+                        {user && ['tessa.engelbrecht@gmail.com', 'reubenkruger278@gmail.com', 'engelb.lara@gmail.com'].includes(user.email) && (
+                            <motion.button
+                                onClick={() => navigate('/admin')}
+                                className="flex items-center px-2 sm:px-3 py-1.5 sm:py-2 bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition-colors text-xs sm:text-sm"
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                title="Switch to Admin View"
+                            >
+                                <span className="hidden sm:inline">Admin</span>
+                            </motion.button>
+                        )}
                         {/* User Section */}
                         {user && (
                             <div className="flex items-center space-x-1 sm:space-x-2 min-w-0 max-w-[200px] sm:max-w-none">

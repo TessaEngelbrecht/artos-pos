@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
     Calendar,
     ArrowLeft,
@@ -8,17 +8,23 @@ import {
     TrendingUp,
     Users,
     MapPin,
-    Package
+    Package,
+    DollarSign,
+    CheckCircle,
+    Clock,
+    ChevronDown,
+    ChevronUp
 } from 'lucide-react'
 import { useAdmin } from '../../contexts/AdminContext'
 
 const WeeklySummary = () => {
-    const { getWeeklyOrders, calculateWeeklySummary, getCurrentWeekStart } = useAdmin()
+    const { getWeeklyOrders, calculateWeeklySummary, getCurrentWeekStart, markOrderCompleted } = useAdmin()
 
     const [currentWeekStart, setCurrentWeekStart] = useState(getCurrentWeekStart())
     const [orders, setOrders] = useState([])
     const [summary, setSummary] = useState(null)
     const [loading, setLoading] = useState(true)
+    const [expandedLocation, setExpandedLocation] = useState(null)
 
     const fetchWeeklyData = useCallback(async () => {
         setLoading(true)
@@ -49,11 +55,25 @@ const WeeklySummary = () => {
         return weekEnd
     }
 
+    const handlePickedUp = async (orderId) => {
+        try {
+            await markOrderCompleted(orderId)
+            fetchWeeklyData() // Refresh data
+        } catch (error) {
+            console.error('Error marking order as picked up:', error)
+        }
+    }
+
     const exportWeeklySummary = () => {
         const weekEnd = getWeekEndDate()
         const data = {
             period: `${currentWeekStart.toDateString()} - ${weekEnd.toDateString()}`,
-            summary,
+            summary: {
+                ...summary,
+                paymentToBaker: `R${summary.totalCost.toFixed(2)}`
+            },
+            breadToOrder: summary.breadQuantities,
+            locationBreakdown: summary.locationBreakdown,
             orders: orders.map(order => ({
                 customer: `${order.users.name} ${order.users.surname}`,
                 email: order.users.email,
@@ -63,7 +83,12 @@ const WeeklySummary = () => {
                 location: order.pickup_location,
                 status: order.status,
                 date: new Date(order.order_date).toLocaleString()
-            }))
+            })),
+            bakerPayment: {
+                totalCost: summary.totalCost,
+                formatted: `R${summary.totalCost.toFixed(2)}`,
+                note: "This is the total amount to pay the baker for this week"
+            }
         }
 
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -147,7 +172,7 @@ const WeeklySummary = () => {
                 </motion.div>
 
                 {/* Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
                     <motion.div
                         className="bg-white rounded-2xl p-6 shadow-lg"
                         whileHover={{ scale: 1.02 }}
@@ -194,6 +219,22 @@ const WeeklySummary = () => {
                     </motion.div>
 
                     <motion.div
+                        className="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-orange-500"
+                        whileHover={{ scale: 1.02 }}
+                    >
+                        <div className="flex items-center">
+                            <div className="p-3 bg-orange-100 rounded-full">
+                                <DollarSign className="text-orange-600" size={24} />
+                            </div>
+                            <div className="ml-4">
+                                <p className="text-gray-600 text-sm">Baker Payment</p>
+                                <p className="text-2xl font-bold text-gray-900">R{summary?.totalCost.toFixed(2) || '0.00'}</p>
+                                <p className="text-xs text-orange-600">Amount to pay baker</p>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    <motion.div
                         className="bg-white rounded-2xl p-6 shadow-lg"
                         whileHover={{ scale: 1.02 }}
                     >
@@ -209,78 +250,121 @@ const WeeklySummary = () => {
                     </motion.div>
                 </div>
 
-                {/* Product Summary */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                    <motion.div
-                        className="bg-white rounded-2xl shadow-lg overflow-hidden"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                    >
-                        <div className="p-6 border-b">
-                            <h3 className="text-xl font-semibold flex items-center">
-                                <Package className="mr-2" size={20} />
-                                Product Summary
-                            </h3>
-                        </div>
-                        <div className="p-6">
-                            {summary?.productSummary && Object.keys(summary.productSummary).length > 0 ? (
-                                <div className="space-y-4">
-                                    {Object.entries(summary.productSummary).map(([product, data]) => (
-                                        <div key={product} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                                            <div>
-                                                <p className="font-medium text-gray-900">{product}</p>
-                                                <p className="text-sm text-gray-600">Quantity: {data.quantity}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="font-bold text-gray-900">R{data.revenue.toFixed(2)}</p>
-                                                <p className="text-sm text-green-600">+R{data.profit.toFixed(2)} profit</p>
-                                            </div>
+                {/* Baker Payment Summary */}
+                <motion.div
+                    className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                >
+                    <div className="p-6 border-b bg-orange-50">
+                        <h3 className="text-xl font-semibold flex items-center text-orange-800">
+                            <Package className="mr-2" size={20} />
+                            Baker Payment Summary - Total Bread to Order
+                        </h3>
+                    </div>
+                    <div className="p-6">
+                        {summary?.breadQuantities && Object.keys(summary.breadQuantities).length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                                {Object.entries(summary.breadQuantities).map(([breadType, quantity]) => (
+                                    <motion.div
+                                        key={breadType}
+                                        className="bg-orange-50 border border-orange-200 rounded-lg p-4"
+                                        whileHover={{ scale: 1.02 }}
+                                    >
+                                        <div className="text-center">
+                                            <div className="text-3xl font-bold text-orange-600 mb-2">{quantity}</div>
+                                            <div className="text-sm font-medium text-gray-700">{breadType}</div>
                                         </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-gray-500 text-center py-8">No products sold this week</p>
-                            )}
-                        </div>
-                    </motion.div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-gray-500 text-center py-8">No bread orders this week</p>
+                        )}
 
-                    {/* Location Summary */}
-                    <motion.div
-                        className="bg-white rounded-2xl shadow-lg overflow-hidden"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                    >
-                        <div className="p-6 border-b">
-                            <h3 className="text-xl font-semibold flex items-center">
-                                <MapPin className="mr-2" size={20} />
-                                Pickup Locations
-                            </h3>
+                        <div className="bg-orange-100 border border-orange-300 rounded-lg p-4 text-center">
+                            <p className="text-lg font-semibold text-orange-800">
+                                Total Payment to Baker: <span className="text-2xl">R{summary?.totalCost.toFixed(2) || '0.00'}</span>
+                            </p>
                         </div>
-                        <div className="p-6">
-                            {summary?.locationSummary && Object.keys(summary.locationSummary).length > 0 ? (
-                                <div className="space-y-4">
-                                    {Object.entries(summary.locationSummary).map(([location, data]) => (
-                                        <div key={location} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                                            <div>
-                                                <p className="font-medium text-gray-900">{location}</p>
-                                                <p className="text-sm text-gray-600">{data.count} orders</p>
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-gray-900">R{data.revenue.toFixed(2)}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-gray-500 text-center py-8">No orders this week</p>
-                            )}
-                        </div>
-                    </motion.div>
-                </div>
+                    </div>
+                </motion.div>
 
-                {/* Weekly Orders List */}
+                {/* Pickup Locations Breakdown */}
+                <motion.div
+                    className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                >
+                    <div className="p-6 border-b">
+                        <h3 className="text-xl font-semibold flex items-center">
+                            <MapPin className="mr-2" size={20} />
+                            Pickup Locations & Bread Distribution
+                        </h3>
+                    </div>
+                    <div className="p-6">
+                        {summary?.locationSummary && Object.keys(summary.locationSummary).length > 0 ? (
+                            <div className="space-y-4">
+                                {Object.entries(summary.locationSummary).map(([location, data]) => (
+                                    <motion.div
+                                        key={location}
+                                        className="border border-gray-200 rounded-lg overflow-hidden"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                    >
+                                        <button
+                                            onClick={() => setExpandedLocation(expandedLocation === location ? null : location)}
+                                            className="w-full flex justify-between items-center p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                                        >
+                                            <div className="flex items-center">
+                                                <MapPin size={16} className="mr-2 text-primary" />
+                                                <span className="font-medium text-gray-900">{location}</span>
+                                                <span className="ml-2 text-sm text-gray-600">({data.count} orders)</span>
+                                            </div>
+                                            <div className="flex items-center">
+                                                <span className="font-bold text-gray-900 mr-3">R{data.revenue.toFixed(2)}</span>
+                                                {expandedLocation === location ?
+                                                    <ChevronUp size={20} className="text-gray-500" /> :
+                                                    <ChevronDown size={20} className="text-gray-500" />
+                                                }
+                                            </div>
+                                        </button>
+
+                                        <AnimatePresence>
+                                            {expandedLocation === location && (
+                                                <motion.div
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: 'auto', opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    transition={{ duration: 0.3 }}
+                                                    className="border-t border-gray-200"
+                                                >
+                                                    <div className="p-4 bg-blue-50">
+                                                        <h4 className="font-semibold text-blue-800 mb-3">Bread needed for {location}:</h4>
+                                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                                                            {summary.locationBreakdown[location] && Object.entries(summary.locationBreakdown[location]).map(([breadType, quantity]) => (
+                                                                <div key={breadType} className="bg-white border border-blue-200 rounded-md p-2 text-center">
+                                                                    <div className="text-lg font-bold text-blue-600">{quantity}</div>
+                                                                    <div className="text-xs text-gray-600">{breadType}</div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-gray-500 text-center py-8">No pickup locations this week</p>
+                        )}
+                    </div>
+                </motion.div>
+
+                {/* Simple Order Bubbles */}
                 <motion.div
                     className="bg-white rounded-2xl shadow-lg overflow-hidden"
                     initial={{ opacity: 0, y: 20 }}
@@ -288,78 +372,60 @@ const WeeklySummary = () => {
                     transition={{ delay: 0.6 }}
                 >
                     <div className="p-6 border-b">
-                        <h3 className="text-xl font-semibold">Weekly Orders ({orders.length})</h3>
+                        <h3 className="text-xl font-semibold">All Orders ({orders.length})</h3>
                     </div>
 
                     {orders.length > 0 ? (
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Customer
-                                        </th>
-                                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Items
-                                        </th>
-                                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Total
-                                        </th>
-                                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Location
-                                        </th>
-                                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Status
-                                        </th>
-                                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Date
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {orders.map((order) => (
-                                        <tr key={order.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-gray-900">
-                                                    {order.users.name} {order.users.surname}
+                        <div className="p-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {orders.map((order) => (
+                                    <motion.div
+                                        key={order.id}
+                                        className={`border rounded-lg p-4 ${order.status === 'completed'
+                                                ? 'bg-green-50 border-green-200'
+                                                : 'bg-yellow-50 border-yellow-200'
+                                            }`}
+                                        whileHover={{ scale: 1.02 }}
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ duration: 0.3 }}
+                                    >
+                                        <div className="mb-3">
+                                            <h4 className="font-semibold text-gray-900">
+                                                {order.users.name} {order.users.surname}
+                                            </h4>
+                                            <p className="text-sm text-gray-600">{order.pickup_location}</p>
+                                        </div>
+
+                                        <div className="mb-3">
+                                            {order.order_items.map((item, idx) => (
+                                                <div key={idx} className="text-sm text-gray-700">
+                                                    {item.products.name} × {item.quantity}
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="text-sm">
-                                                    {order.order_items.map((item, idx) => (
-                                                        <div key={idx}>
-                                                            {item.products.name} × {item.quantity}
-                                                        </div>
-                                                    ))}
+                                            ))}
+                                        </div>
+
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-bold text-lg">R{parseFloat(order.total_amount).toFixed(2)}</span>
+
+                                            {order.status === 'completed' ? (
+                                                <div className="flex items-center text-green-600">
+                                                    <CheckCircle size={16} className="mr-1" />
+                                                    <span className="text-sm font-medium">Picked Up</span>
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-gray-900">
-                                                    R{parseFloat(order.total_amount).toFixed(2)}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">
-                                                    {order.pickup_location}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${order.status === 'completed'
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : 'bg-yellow-100 text-yellow-800'
-                                                    }`}>
-                                                    {order.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">
-                                                    {new Date(order.order_date).toLocaleDateString()}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                            ) : (
+                                                <button
+                                                    onClick={() => handlePickedUp(order.id)}
+                                                    className="flex items-center px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+                                                >
+                                                    <Clock size={14} className="mr-1" />
+                                                    Mark Picked Up
+                                                </button>
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
                         </div>
                     ) : (
                         <div className="p-8 text-center">

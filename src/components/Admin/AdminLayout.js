@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import UserToggle from './UserToggle'
 import {
     LayoutDashboard,
     Calendar,
@@ -27,9 +28,15 @@ const AdminLayout = ({ children, currentPage, setCurrentPage }) => {
         return () => window.removeEventListener('resize', handleResize)
     }, [])
 
-    const handleSignOut = async () => {
-        await signOut()
-        navigate('/login')
+    const handleSignOut = async (e) => {
+        e.preventDefault()
+        try {
+            await signOut()
+            navigate('/login', { replace: true })
+        } catch (error) {
+            console.error('Error signing out:', error)
+            navigate('/login', { replace: true })
+        }
     }
 
     const closeSidebar = () => {
@@ -89,6 +96,9 @@ const AdminLayout = ({ children, currentPage, setCurrentPage }) => {
                             >
                                 <X size={20} className="text-gray-600" />
                             </button>
+                        </div>
+                        <div className="mt-4">
+                            <UserToggle />
                         </div>
                     </div>
 
