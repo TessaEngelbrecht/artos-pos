@@ -20,11 +20,7 @@ const WeeklySummary = () => {
     const [summary, setSummary] = useState(null)
     const [loading, setLoading] = useState(true)
 
-    useEffect(() => {
-        fetchWeeklyData()
-    }, [currentWeekStart])
-
-    const fetchWeeklyData = async () => {
+    const fetchWeeklyData = useCallback(async () => {
         setLoading(true)
         try {
             const weeklyOrders = await getWeeklyOrders(currentWeekStart)
@@ -35,7 +31,11 @@ const WeeklySummary = () => {
         } finally {
             setLoading(false)
         }
-    }
+    }, [currentWeekStart, getWeeklyOrders, calculateWeeklySummary])
+
+    useEffect(() => {
+        fetchWeeklyData()
+    }, [fetchWeeklyData])
 
     const navigateWeek = (direction) => {
         const newDate = new Date(currentWeekStart)

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
     ShoppingBag,
@@ -34,15 +34,7 @@ const AdminDashboard = () => {
     const [notes, setNotes] = useState('')
     const [showNotes, setShowNotes] = useState(false)
 
-    useEffect(() => {
-        fetchOrders()
-    }, [])
-
-    useEffect(() => {
-        filterOrders()
-    }, [orders, searchTerm, statusFilter])
-
-    const fetchOrders = async () => {
+    const fetchOrders = useCallback(async () => {
         try {
             const data = await getAllOrders()
             setOrders(data)
@@ -52,9 +44,9 @@ const AdminDashboard = () => {
         } finally {
             setLoading(false)
         }
-    }
+    }, [getAllOrders])
 
-    const filterOrders = () => {
+    const filterOrders = useCallback(() => {
         let filtered = orders
 
         // Status filter
@@ -76,7 +68,15 @@ const AdminDashboard = () => {
         }
 
         setFilteredOrders(filtered)
-    }
+    }, [orders, searchTerm, statusFilter])
+
+    useEffect(() => {
+        fetchOrders()
+    }, [fetchOrders])
+
+    useEffect(() => {
+        filterOrders()
+    }, [filterOrders])
 
     const handleCompleteOrder = async (orderId) => {
         try {
@@ -257,8 +257,8 @@ const AdminDashboard = () => {
                         <h2 className="text-xl font-semibold">Orders ({filteredOrders.length})</h2>
                     </div>
 
-                    <div className="overflow-x-auto table-container">
-                        <table className="w-full min-w-[800px]"> 
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
                             <thead className="bg-gray-50">
                                 <tr>
                                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
