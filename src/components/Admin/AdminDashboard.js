@@ -11,7 +11,9 @@ import {
     MapPin,
     Phone,
     Mail,
-    Clock
+    Clock,
+    Eye,
+    Download
 } from 'lucide-react'
 import { useAdmin } from '../../contexts/AdminContext'
 
@@ -30,9 +32,11 @@ const AdminDashboard = () => {
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
+    const [verificationFilter, setVerificationFilter] = useState('all')
     const [selectedOrder, setSelectedOrder] = useState(null)
     const [notes, setNotes] = useState('')
     const [showNotes, setShowNotes] = useState(false)
+    const [showVerificationDetails, setShowVerificationDetails] = useState(null)
 
     const fetchOrders = useCallback(async () => {
         try {
@@ -54,6 +58,19 @@ const AdminDashboard = () => {
             filtered = filtered.filter(order => order.status === statusFilter)
         }
 
+        // Verification filter
+        if (verificationFilter !== 'all') {
+            filtered = filtered.filter(order => {
+                const hasVerification = order.verification_result && order.verification_result !== null
+                if (verificationFilter === 'verified') {
+                    return hasVerification
+                } else if (verificationFilter === 'not-verified') {
+                    return !hasVerification
+                }
+                return true
+            })
+        }
+
         // Search filter
         if (searchTerm) {
             filtered = filtered.filter(order => {
@@ -68,7 +85,7 @@ const AdminDashboard = () => {
         }
 
         setFilteredOrders(filtered)
-    }, [orders, searchTerm, statusFilter])
+    }, [orders, searchTerm, statusFilter, verificationFilter])
 
     useEffect(() => {
         fetchOrders()
@@ -106,6 +123,40 @@ const AdminDashboard = () => {
             fetchOrders()
         } catch (error) {
             console.error('Error adding notes:', error)
+        }
+    }
+
+    const getVerificationStatus = (order) => {
+        if (!order.verification_result) {
+            return { status: 'Not Verified', confidence: null, color: 'gray' }
+        }
+
+        try {
+            const verification = JSON.parse(order.verification_result)
+            if (verification.success && verification.verification) {
+                const confidence = verification.verification.confidence || 0
+                const isValid = verification.verification.isValid && verification.verification.amountMatches
+
+                if (isValid && confidence >= 70) {
+                    return { status: 'AI Verified', confidence, color: 'green' }
+                } else if (confidence >= 50) {
+                    return { status: 'Low Confidence', confidence, color: 'yellow' }
+                } else {
+                    return { status: 'Failed', confidence, color: 'red' }
+                }
+            } else {
+                return { status: 'Error', confidence: null, color: 'red' }
+            }
+        } catch (error) {
+            return { status: 'Invalid', confidence: null, color: 'red' }
+        }
+    }
+
+    const downloadPaymentProof = (order) => {
+        if (order.payment_proof_url) {
+            // Construct Supabase storage URL
+            const storageUrl = `${process.env.REACT_APP_SUPABASE_URL}/storage/v1/object/public/payment-proofs/${order.payment_proof_url}`
+            window.open(storageUrl, '_blank')
         }
     }
 
@@ -212,15 +263,15 @@ const AdminDashboard = () => {
                     </motion.div>
                 </div>
 
-                {/* Filters */}
+                {/* Enhanced Filters */}
                 <motion.div
                     className="bg-white rounded-2xl p-6 shadow-lg mb-8"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                 >
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        <div className="flex-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="lg:col-span-2">
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                                 <input
@@ -232,15 +283,26 @@ const AdminDashboard = () => {
                                 />
                             </div>
                         </div>
-                        <div className="sm:w-48">
+                        <div>
                             <select
                                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
                             >
-                                <option value="all">All Orders</option>
+                                <option value="all">All Statuses</option>
                                 <option value="pending">Pending</option>
                                 <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                        <div>
+                            <select
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                value={verificationFilter}
+                                onChange={(e) => setVerificationFilter(e.target.value)}
+                            >
+                                <option value="all">All Verifications</option>
+                                <option value="verified">AI Verified</option>
+                                <option value="not-verified">Not Verified</option>
                             </select>
                         </div>
                     </div>
@@ -258,7 +320,7 @@ const AdminDashboard = () => {
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="w-full">
+                        <table className="w-full min-w-[1200px]">
                             <thead className="bg-gray-50">
                                 <tr>
                                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -274,7 +336,10 @@ const AdminDashboard = () => {
                                         Total
                                     </th>
                                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Status
+                                        Order Status
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        AI Verification
                                     </th>
                                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Date
@@ -286,97 +351,162 @@ const AdminDashboard = () => {
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
                                 <AnimatePresence>
-                                    {filteredOrders.map((order, index) => (
-                                        <motion.tr
-                                            key={order.id}
-                                            initial={{ opacity: 0, x: -20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, x: 20 }}
-                                            transition={{ delay: index * 0.05 }}
-                                            className="hover:bg-gray-50"
-                                        >
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div>
-                                                    <div className="text-sm font-medium text-gray-900">
-                                                        {order.users.name} {order.users.surname}
-                                                    </div>
-                                                    <div className="text-sm text-gray-500 flex items-center">
-                                                        <Mail size={12} className="mr-1" />
-                                                        {order.users.email}
-                                                    </div>
-                                                    <div className="text-sm text-gray-500 flex items-center">
-                                                        <Phone size={12} className="mr-1" />
-                                                        {order.users.contact_number}
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="text-sm">
-                                                    {order.order_items.map((item, idx) => (
-                                                        <div key={idx} className="mb-1">
-                                                            {item.products.name} × {item.quantity}
+                                    {filteredOrders.map((order, index) => {
+                                        const verificationStatus = getVerificationStatus(order)
+                                        return (
+                                            <motion.tr
+                                                key={order.id}
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, x: 20 }}
+                                                transition={{ delay: index * 0.05 }}
+                                                className="hover:bg-gray-50"
+                                            >
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div>
+                                                        <div className="text-sm font-medium text-gray-900">
+                                                            {order.users.name} {order.users.surname}
                                                         </div>
-                                                    ))}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900 flex items-center">
-                                                    <MapPin size={12} className="mr-1" />
-                                                    {order.pickup_location}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-gray-900">
-                                                    R{parseFloat(order.total_amount).toFixed(2)}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${order.status === 'completed'
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : 'bg-yellow-100 text-yellow-800'
-                                                    }`}>
-                                                    {order.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900 flex items-center">
-                                                    <Clock size={12} className="mr-1" />
-                                                    {new Date(order.order_date).toLocaleDateString()}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <div className="flex space-x-2">
-                                                    {order.status !== 'completed' && (
-                                                        <button
-                                                            onClick={() => handleCompleteOrder(order.id)}
-                                                            className="text-green-600 hover:text-green-900 p-1"
-                                                            title="Mark as completed"
+                                                        <div className="text-sm text-gray-500 flex items-center">
+                                                            <Mail size={12} className="mr-1" />
+                                                            {order.users.email}
+                                                        </div>
+                                                        <div className="text-sm text-gray-500 flex items-center">
+                                                            <Phone size={12} className="mr-1" />
+                                                            {order.users.contact_number}
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="text-sm">
+                                                        {order.order_items.map((item, idx) => (
+                                                            <div key={idx} className="mb-1">
+                                                                {item.products.name} × {item.quantity}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm text-gray-900 flex items-center">
+                                                        <MapPin size={12} className="mr-1" />
+                                                        {order.pickup_location}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm font-medium text-gray-900">
+                                                        R{parseFloat(order.total_amount).toFixed(2)}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${order.status === 'completed'
+                                                            ? 'bg-green-100 text-green-800'
+                                                            : order.status === 'verified'
+                                                                ? 'bg-blue-100 text-blue-800'
+                                                                : 'bg-yellow-100 text-yellow-800'
+                                                        }`}>
+                                                        {order.status === 'verified' ? 'Verified' :
+                                                            order.status === 'completed' ? 'Completed' : 'Pending'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex items-center space-x-2">
+                                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${verificationStatus.color === 'green' ? 'bg-green-100 text-green-800' :
+                                                                verificationStatus.color === 'yellow' ? 'bg-yellow-100 text-yellow-800' :
+                                                                    verificationStatus.color === 'red' ? 'bg-red-100 text-red-800' :
+                                                                        'bg-gray-100 text-gray-800'
+                                                            }`}>
+                                                            {verificationStatus.status}
+                                                            {verificationStatus.confidence && ` (${verificationStatus.confidence}%)`}
+                                                        </span>
+                                                        {order.verification_result && (
+                                                            <button
+                                                                onClick={() => setShowVerificationDetails(
+                                                                    showVerificationDetails === order.id ? null : order.id
+                                                                )}
+                                                                className="text-blue-600 hover:text-blue-900"
+                                                                title="View verification details"
+                                                            >
+                                                                <Eye size={14} />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                    {/* Verification Details */}
+                                                    {showVerificationDetails === order.id && order.verification_result && (
+                                                        <motion.div
+                                                            className="mt-2 p-2 bg-gray-50 rounded text-xs"
+                                                            initial={{ opacity: 0, height: 0 }}
+                                                            animate={{ opacity: 1, height: 'auto' }}
+                                                            exit={{ opacity: 0, height: 0 }}
                                                         >
-                                                            <Check size={16} />
-                                                        </button>
+                                                            {(() => {
+                                                                try {
+                                                                    const verification = JSON.parse(order.verification_result)
+                                                                    if (verification.verification) {
+                                                                        return (
+                                                                            <div className="space-y-1">
+                                                                                <div>Valid: {verification.verification.isValid ? '✅' : '❌'}</div>
+                                                                                <div>Amount Match: {verification.verification.amountMatches ? '✅' : '❌'}</div>
+                                                                                <div>Detected: R{verification.verification.detectedAmount || 'N/A'}</div>
+                                                                                <div>Bank: {verification.verification.bankName || 'Unknown'}</div>
+                                                                            </div>
+                                                                        )
+                                                                    }
+                                                                } catch (e) {
+                                                                    return <div>Invalid verification data</div>
+                                                                }
+                                                            })()}
+                                                        </motion.div>
                                                     )}
-                                                    <button
-                                                        onClick={() => {
-                                                            setSelectedOrder(order)
-                                                            setNotes(order.notes || '')
-                                                            setShowNotes(true)
-                                                        }}
-                                                        className="text-blue-600 hover:text-blue-900 p-1"
-                                                        title="Add notes"
-                                                    >
-                                                        <Edit size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteOrder(order.id)}
-                                                        className="text-red-600 hover:text-red-900 p-1"
-                                                        title="Delete order"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </motion.tr>
-                                    ))}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm text-gray-900 flex items-center">
+                                                        <Clock size={12} className="mr-1" />
+                                                        {new Date(order.order_date).toLocaleDateString()}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <div className="flex space-x-2">
+                                                        {order.payment_proof_url && (
+                                                            <button
+                                                                onClick={() => downloadPaymentProof(order)}
+                                                                className="text-purple-600 hover:text-purple-900 p-1"
+                                                                title="View payment proof"
+                                                            >
+                                                                <Download size={16} />
+                                                            </button>
+                                                        )}
+                                                        {order.status !== 'completed' && (
+                                                            <button
+                                                                onClick={() => handleCompleteOrder(order.id)}
+                                                                className="text-green-600 hover:text-green-900 p-1"
+                                                                title="Mark as completed"
+                                                            >
+                                                                <Check size={16} />
+                                                            </button>
+                                                        )}
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedOrder(order)
+                                                                setNotes(order.notes || '')
+                                                                setShowNotes(true)
+                                                            }}
+                                                            className="text-blue-600 hover:text-blue-900 p-1"
+                                                            title="Add notes"
+                                                        >
+                                                            <Edit size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteOrder(order.id)}
+                                                            className="text-red-600 hover:text-red-900 p-1"
+                                                            title="Delete order"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </motion.tr>
+                                        )
+                                    })}
                                 </AnimatePresence>
                             </tbody>
                         </table>

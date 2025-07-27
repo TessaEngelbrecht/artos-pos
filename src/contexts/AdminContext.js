@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
 import { useAuth } from './AuthContext'
 import { supabase } from '../lib/supabase'
 
@@ -17,8 +17,12 @@ export const AdminProvider = ({ children }) => {
     const [isAdmin, setIsAdmin] = useState(false)
     const [loading, setLoading] = useState(true)
 
-    // Admin emails list
-    const adminEmails = ['tessa.engelbrecht@gmail.com', 'reubenkruger278@gmail.com', 'engelb.lara@gmail.com']
+    // Memoize admin emails to prevent recreation on every render
+    const adminEmails = useMemo(() => [
+        'tessa.engelbrecht@gmail.com',
+        'reubenkruger278@gmail.com',
+        'engelb.lara@gmail.com'
+    ], [])
 
     const checkAdminStatus = useCallback(() => {
         if (user && adminEmails.includes(user.email)) {
@@ -32,6 +36,8 @@ export const AdminProvider = ({ children }) => {
     useEffect(() => {
         checkAdminStatus()
     }, [checkAdminStatus])
+
+
 
     // Get all orders with user info and items
     const getAllOrders = async () => {

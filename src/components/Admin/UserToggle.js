@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Users, Settings } from 'lucide-react'
+import { Users} from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 const UserToggle = () => {
