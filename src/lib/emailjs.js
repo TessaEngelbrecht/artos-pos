@@ -3,7 +3,7 @@ import emailjs from '@emailjs/browser'
 export const sendOrderEmail = async (orderData, userInfo) => {
     try {
         const templateParams = {
-            to_email: 'tessa.engelbrecht@gmail.com', // Make sure this is set engelb.lara@gmail.com
+            to_email: 'engelb.lara@gmail.com', // Make sure this is set engelb.lara@gmail.com
             to_name: 'Lara Engelbrecht', // Add recipient name
             from_name: `${userInfo.name} ${userInfo.surname}`,
             customer_name: `${userInfo.name} ${userInfo.surname}`,
