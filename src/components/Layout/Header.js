@@ -1,9 +1,10 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { ShoppingCart, User, LogOut, Menu } from 'lucide-react'
+import { ShoppingCart, User, LogOut } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useCart } from '../../contexts/CartContext'
 import { useNavigate } from 'react-router-dom'
+
 
 const Header = () => {
     const { user, signOut } = useAuth()
