@@ -88,7 +88,7 @@ ${v.issues && v.issues.length > 0 ? `• Issues Found: ${v.issues.join(', ')}` :
             PUBLIC_KEY
         )
 
-        console.log('Email sent successfully:', response)
+        //console.log('Email sent successfully:', response)
         return { success: true, response }
     } catch (error) {
         console.error('Error sending email:', error)

@@ -23,11 +23,11 @@ const PaymentPage = () => {
 
     const { orderData } = location.state || {}
     // Add this at the top of your PaymentPage component (temporary)
-    console.log('Environment check:')
-    console.log('NODE_ENV:', process.env.NODE_ENV)
-    console.log('All REACT_APP vars:', Object.keys(process.env).filter(key => key.startsWith('REACT_APP')))
-    console.log('Gemini key present:', !!process.env.REACT_APP_GEMINI_API_KEY)
-    console.log('Gemini key length:', process.env.REACT_APP_GEMINI_API_KEY?.length)
+    // console.log('Environment check:')
+    // console.log('NODE_ENV:', process.env.NODE_ENV)
+    // console.log('All REACT_APP vars:', Object.keys(process.env).filter(key => key.startsWith('REACT_APP')))
+    // console.log('Gemini key present:', !!process.env.REACT_APP_GEMINI_API_KEY)
+    // console.log('Gemini key length:', process.env.REACT_APP_GEMINI_API_KEY?.length)
 
     if (!orderData) {
         navigate('/cart')
@@ -72,7 +72,7 @@ const PaymentPage = () => {
             setVerification(result)
 
             if (result.success) {
-                console.log('Verification successful:', result.verification)
+               // console.log('Verification successful:', result.verification)
             } else {
                 console.error('Verification failed:', result.error)
             }

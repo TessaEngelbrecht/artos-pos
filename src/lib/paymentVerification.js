@@ -27,8 +27,8 @@ const getMimeType = (file) => {
 // Verify payment proof using Gemini AI
 export const verifyPaymentProof = async (file, expectedAmount, expectedReference) => {
     try {
-        console.log('API Key present:', !!process.env.REACT_APP_GEMINI_API_KEY)
-        console.log('Starting AI verification for amount:', expectedAmount)
+        //console.log('API Key present:', !!process.env.REACT_APP_GEMINI_API_KEY)
+        //console.log('Starting AI verification for amount:', expectedAmount)
         // Convert file to base64
         const base64Data = await fileToBase64(file)
         const mimeType = getMimeType(file)
@@ -85,7 +85,7 @@ export const verifyPaymentProof = async (file, expectedAmount, expectedReference
         const response = await result.response
         const text = response.text()
 
-        console.log('AI Response:', text)
+        //console.log('AI Response:', text)
 
         // Parse JSON response
         try {
