@@ -161,15 +161,16 @@ const AdminDashboard = () => {
     }
 
     // Calculate summary stats
-    const currentWeekStart = getCurrentWeekStart()
-    const currentWeekOrders = orders.filter(order => {
-        const orderDate = new Date(order.order_date)
-        const weekEnd = new Date(currentWeekStart)
-        weekEnd.setDate(weekEnd.getDate() + 7)
-        return orderDate >= currentWeekStart && orderDate < weekEnd
-    })
+    // const currentWeekStart = getCurrentWeekStart()
+    // const currentWeekOrders = orders.filter(order => {
+    //     const orderDate = new Date(order.order_date)
+    //     const weekEnd = new Date(currentWeekStart)
+    //     weekEnd.setDate(weekEnd.getDate() + 7)
+    //     return orderDate >= currentWeekStart && orderDate < weekEnd
+    // })
 
-    const summary = calculateWeeklySummary(currentWeekOrders)
+    const summary = calculateWeeklySummary(orders)
+
 
     if (loading) {
         return (
@@ -211,7 +212,7 @@ const AdminDashboard = () => {
                                 <ShoppingBag className="text-blue-600" size={24} />
                             </div>
                             <div className="ml-4">
-                                <p className="text-gray-600 text-sm">This Week Orders</p>
+                                <p className="text-gray-600 text-sm">Total Orders</p>
                                 <p className="text-2xl font-bold text-gray-900">{summary.totalOrders}</p>
                             </div>
                         </div>

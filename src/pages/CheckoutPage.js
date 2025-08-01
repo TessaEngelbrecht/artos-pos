@@ -14,7 +14,7 @@ const CheckoutPage = () => {
         {
             value: 'centurion',
             label: 'Centurion Golf Estate',
-            address: '132 Santa Monica Blvd',
+            address: 'John Voster Gate',
             time: 'Fridays 14:00-15:00'
         },
         {
