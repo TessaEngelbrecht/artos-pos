@@ -392,7 +392,7 @@ export default function BreadQuizGame() {
     return (
         <div className="relative bg-gradient-to-r from-yellow-50 to-amber-100 border border-yellow-300 rounded-xl shadow-lg mx-auto mt-2 mb-10 max-w-xl px-6 sm:px-10 py-7 overflow-hidden">
             <div className="flex items-center mb-1 sm:mb-3">
-                <h2 className="font-bold text-lg sm:text-xl text-amber-800 tracking-tight">🍞 Sourdough Quiz</h2>
+                <h2 className="font-bold text-lg sm:text-xl text-amber-800 tracking-tight">🍞 Sourdough Quiz Just for fun!</h2>
             </div>
             <motion.div
                 className="mt-2 mb-4"

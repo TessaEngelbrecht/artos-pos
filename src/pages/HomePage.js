@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import ProductCard from '../components/Products/ProductCard'
 import Header from '../components/Layout/Header'
 import BreadQuizGame from '../components/Layout/BreadQuizGame'
+import ScrollDownHint from '../components/Layout/ScrollDownHint'
 
 const HomePage = () => {
     const [products, setProducts] = useState([])
@@ -79,6 +80,8 @@ const HomePage = () => {
 
                 {/* The quiz comes right below the hero */}
                 <BreadQuizGame />
+
+                <ScrollDownHint />
 
                 {/* Products Section */}
                 <motion.div
