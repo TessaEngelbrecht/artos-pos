@@ -47,7 +47,7 @@ const LoginForm = () => {
                     >
                         Welcome Back
                     </motion.h1>
-                    <p className="text-gray-600">Sign in to your Artos account</p>
+                    <p className="text-gray-600">Sign in to your account</p>
                 </div>
 
                 {error && (

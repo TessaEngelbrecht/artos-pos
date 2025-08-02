@@ -41,9 +41,9 @@ const Header = () => {
                     >
                         <div className="flex flex-col min-w-0">
                             <h1 className="text-sm sm:text-lg lg:text-2xl font-display font-bold leading-tight truncate">
-                                Artos Sourdough
+                                Sourdough from Artos
                             </h1>
-                            <span className="text-xs sm:text-sm opacity-75 -mt-1 truncate">by Lara</span>
+                            <span className="text-xs sm:text-sm opacity-75 -mt-1 truncate">Sold By Lara</span>
                         </div>
                     </motion.div>
 

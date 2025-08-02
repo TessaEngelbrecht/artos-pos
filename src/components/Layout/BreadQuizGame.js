@@ -381,7 +381,6 @@ export default function BreadQuizGame() {
             setUserAnswer(null)
             setShowResult(false)
         } else {
-            // Re-shuffle for a new session
             setQuestions(shuffle(BREAD_QUIZ))
             setCurrent(0)
             setUserAnswer(null)
@@ -390,12 +389,16 @@ export default function BreadQuizGame() {
     }
 
     return (
-        <div className="relative bg-gradient-to-r from-yellow-50 to-amber-100 border border-yellow-300 rounded-xl shadow-lg mx-auto mt-2 mb-10 max-w-xl px-6 sm:px-10 py-7 overflow-hidden">
-            <div className="flex items-center mb-1 sm:mb-3">
-                <h2 className="font-bold text-lg sm:text-xl text-amber-800 tracking-tight">🍞 Sourdough Quiz Just for fun!</h2>
+        <div
+            className="relative w-full max-w-screen-xl mx-auto bg-gradient-to-r from-yellow-50 to-amber-100 border border-yellow-300 rounded-2xl shadow-2xl px-3 py-6 sm:p-10 md:p-14 flex flex-col justify-center items-center my-6"
+            style={{ minHeight: '380px', boxSizing: 'border-box' }}
+        >
+            <div className="flex items-center mb-2 sm:mb-5 w-full max-w-2xl">
+                <h2 className="font-bold text-xl sm:text-2xl text-amber-800 tracking-tight">🍞 Sourdough Quiz</h2>
+                <span className="ml-3 text-xs sm:text-sm bg-yellow-200 px-2 py-0.5 rounded-full text-yellow-900 font-medium">{current + 1} / {questions.length}</span>
             </div>
             <motion.div
-                className="mt-2 mb-4"
+                className="mt-2 mb-4 w-full max-w-2xl"
                 key={currQ.question}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -405,9 +408,8 @@ export default function BreadQuizGame() {
                     {currQ.question}
                 </div>
             </motion.div>
-
             {/* Answer options */}
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 w-full max-w-2xl">
                 {currQ.type === "boolean" ? (
                     <>
                         <button
@@ -449,12 +451,11 @@ export default function BreadQuizGame() {
                     ))
                 ) : null}
             </div>
-
             {/* Feedback */}
             <AnimatePresence>
                 {showResult && (
                     <motion.div
-                        className="mt-4 py-3 px-3 md:px-4 rounded-xl flex items-center justify-between"
+                        className="mt-4 py-3 px-3 md:px-4 rounded-xl flex items-center justify-between max-w-2xl w-full"
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 8 }}
@@ -476,9 +477,7 @@ export default function BreadQuizGame() {
                     </motion.div>
                 )}
             </AnimatePresence>
-
-            {/* Next Question Button */}
-            <div className="flex justify-center mt-6">
+            <div className="flex justify-center mt-6 max-w-2xl w-full">
                 <button
                     className="bg-primary text-white px-6 py-2 rounded-full font-semibold shadow-sm hover:bg-amber-700 transition disabled:opacity-50"
                     onClick={handleNext}

@@ -83,7 +83,7 @@ const AdminLayout = ({ children, currentPage, setCurrentPage }) => {
                                 <h2 className="text-lg sm:text-xl font-display font-bold text-primary truncate">
                                     Artos Admin
                                 </h2>
-                                <p className="text-xs sm:text-sm text-gray-600">by Lara</p>
+                                <p className="text-xs sm:text-sm text-gray-600">Sold By Lara</p>
                             </div>
                             {/* Close button - only visible on mobile */}
                             <button

@@ -118,3 +118,7 @@ select:hover {
         min-height: 44px; /* Better touch targets */
     }
 }
+
+.mb-14{
+    margin-bottom: 0.5rem !important;
+}

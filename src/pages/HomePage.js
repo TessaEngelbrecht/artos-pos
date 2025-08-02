@@ -66,7 +66,7 @@ const HomePage = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2, duration: 0.8 }}
                     >
-                        Artos Sourdough
+                        Sourdough from Artos
                     </motion.h1>
                     <motion.p
                         className="text-xl text-gray-700 mb-2 max-w-2xl mx-auto"
@@ -74,14 +74,11 @@ const HomePage = () => {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.4, duration: 0.8 }}
                     >
-                        by Lara
+                        Sold By Lara
                     </motion.p>
                 </motion.div>
 
-                {/* The quiz comes right below the hero */}
-                <BreadQuizGame />
-
-                <ScrollDownHint />
+                {/* <ScrollDownHint /> */}
 
                 {/* Products Section */}
                 <motion.div
@@ -109,6 +106,7 @@ const HomePage = () => {
                         </div>
                     </AnimatePresence>
                 </motion.div>
+                <BreadQuizGame />
             </main>
         </div>
     )

@@ -61,7 +61,7 @@ const SignupForm = () => {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}
                     >
-                        Join Artos
+                        Join Us
                     </motion.h1>
                     <p className="text-gray-600">Create your account to start ordering</p>
                 </div>
