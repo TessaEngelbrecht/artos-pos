@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { CheckCircle, Mail, MapPin, Calendar } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Header from '../components/Layout/Header'
+import Footer from '../components/Layout/Footer'
 
 const OrderSuccessPage = () => {
     const location = useLocation()
@@ -15,10 +16,10 @@ const OrderSuccessPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
+        <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex flex-col min-h-screen">
             <Header />
 
-            <main className="container mx-auto px-4 py-16">
+            <main className="container mx-auto px-4 py-16 flex-grow">
                 <motion.div
                     className="max-w-2xl mx-auto text-center"
                     initial={{ opacity: 0, y: 20 }}
@@ -120,6 +121,7 @@ const OrderSuccessPage = () => {
                     </motion.button>
                 </motion.div>
             </main>
+            <Footer />
         </div>
     )
 }

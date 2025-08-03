@@ -5,6 +5,7 @@ import ProductCard from '../components/Products/ProductCard'
 import Header from '../components/Layout/Header'
 import BreadQuizGame from '../components/Layout/BreadQuizGame'
 import ScrollDownHint from '../components/Layout/ScrollDownHint'
+import Footer from '../components/Layout/Footer'
 
 const HomePage = () => {
     const [products, setProducts] = useState([])
@@ -19,7 +20,7 @@ const HomePage = () => {
             const { data, error } = await supabase
                 .from('products')
                 .select('*')
-                .order('name')
+                .order('price')
             if (error) throw error
             setProducts(data)
         } catch (error) {
@@ -51,9 +52,9 @@ const HomePage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100">
+        <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 flex flex-col min-h-screen">
             <Header />
-            <main className="container mx-auto px-4 py-8">
+            <main className="container mx-auto px-4 py-8 flex-grow">
                 <motion.div
                     className="text-center mb-14"
                     initial={{ opacity: 0, y: -20 }}
@@ -108,6 +109,7 @@ const HomePage = () => {
                 </motion.div>
                 <BreadQuizGame />
             </main>
+            <Footer />
         </div>
     )
 }

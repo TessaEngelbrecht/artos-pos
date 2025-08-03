@@ -4,6 +4,7 @@ import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react'
 import { useCart } from '../contexts/CartContext'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Layout/Header'
+import Footer from '../components/Layout/Footer'
 
 const CartPage = () => {
     const { items, updateQuantity, removeItem, getTotal } = useCart()
@@ -38,10 +39,10 @@ const CartPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
+        <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex flex-col min-h-screen">
             <Header />
 
-            <main className="container mx-auto px-4 py-8">
+            <main className="container mx-auto px-4 py-8 flex-grow">
                 <motion.h1
                     className="text-3xl font-display font-bold text-primary mb-8"
                     initial={{ opacity: 0, y: -20 }}
@@ -138,6 +139,7 @@ const CartPage = () => {
                     </div>
                 </div>
             </main>
+            <Footer />
         </div>
     )
 }

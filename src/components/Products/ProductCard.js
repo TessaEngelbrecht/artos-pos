@@ -34,6 +34,11 @@ const productStyles = {
         primaryColor: '#F4A460',
         accentColor: '#FFE4B5',
         gradient: 'from-orange-100 to-yellow-100'
+    },
+    'Rye sourdough bread': {
+        primaryColor: '#525352ff',
+        accentColor: '#FFE4B5',
+        gradient: 'from-orange-100 to-yellow-100'
     }
 }
 
