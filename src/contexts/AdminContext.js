@@ -37,8 +37,6 @@ export const AdminProvider = ({ children }) => {
         checkAdminStatus()
     }, [checkAdminStatus])
 
-
-
     // Get all orders with user info and items
     const getAllOrders = async () => {
         const { data, error } = await supabase
@@ -57,10 +55,12 @@ export const AdminProvider = ({ children }) => {
         return data
     }
 
-    // Get orders for specific week (Wednesday to Wednesday)
+    // Get orders for specific week (Wednesday 15:01 to next Wednesday 15:00)
     const getWeeklyOrders = async (weekStart) => {
         const weekEnd = new Date(weekStart)
         weekEnd.setDate(weekEnd.getDate() + 7)
+        // Week ends at exactly 15:00:00 on the following Wednesday
+        weekEnd.setHours(15, 0, 0, 0)
 
         const { data, error } = await supabase
             .from('orders')
@@ -72,8 +72,8 @@ export const AdminProvider = ({ children }) => {
           products(name, price, cost_price)
         )
       `)
-            .gte('order_date', weekStart.toISOString())
-            .lt('order_date', weekEnd.toISOString())
+            .gt('order_date', weekStart.toISOString()) // After 15:00 previous Wednesday
+            .lte('order_date', weekEnd.toISOString()) // Up to and including 15:00 current Wednesday
             .order('order_date', { ascending: false })
 
         if (error) throw error
@@ -125,7 +125,8 @@ export const AdminProvider = ({ children }) => {
         if (error) throw error
         return data[0]
     }
-    // Update the calculateWeeklySummary function in AdminContext.js
+
+    // Calculate weekly summary (unchanged)
     const calculateWeeklySummary = (orders) => {
         const summary = {
             totalOrders: orders.length,
@@ -136,8 +137,8 @@ export const AdminProvider = ({ children }) => {
             locationSummary: {},
             completedOrders: 0,
             pendingOrders: 0,
-            breadQuantities: {}, // New: Total bread quantities to order
-            locationBreakdown: {} // New: Bread quantities per location
+            breadQuantities: {},
+            locationBreakdown: {}
         }
 
         orders.forEach(order => {
@@ -154,7 +155,7 @@ export const AdminProvider = ({ children }) => {
                 summary.locationSummary[order.pickup_location] = {
                     count: 0,
                     revenue: 0,
-                    orders: [] // New: Store orders for this location
+                    orders: []
                 }
             }
             summary.locationSummary[order.pickup_location].count++
@@ -209,30 +210,63 @@ export const AdminProvider = ({ children }) => {
         return summary
     }
 
-
-
-    // Get next Wednesday (start of week)
+    // Get next Wednesday 15:01 (start of next week)
     const getNextWednesday = (date = new Date()) => {
         const nextWednesday = new Date(date)
         const day = nextWednesday.getDay()
-        const daysUntilWednesday = (3 - day + 7) % 7
-        if (daysUntilWednesday === 0 && date.getDay() !== 3) {
-            nextWednesday.setDate(nextWednesday.getDate() + 7)
-        } else {
-            nextWednesday.setDate(nextWednesday.getDate() + daysUntilWednesday)
+        const hour = nextWednesday.getHours()
+
+        // Calculate days until next Wednesday
+        let daysUntilWednesday = (3 - day + 7) % 7
+
+        // If it's Wednesday and before or exactly 15:00, we want this Wednesday at 15:01
+        // If it's Wednesday and after 15:00, we want next Wednesday at 15:01
+        if (day === 3) { // It's Wednesday
+            if (hour < 15 || (hour === 15 && nextWednesday.getMinutes() === 0 && nextWednesday.getSeconds() === 0)) {
+                // Before or exactly 15:00 - use today
+                daysUntilWednesday = 0
+            } else {
+                // After 15:00 - use next Wednesday
+                daysUntilWednesday = 7
+            }
+        } else if (daysUntilWednesday === 0) {
+            // Not Wednesday but calculation gave 0, means we want next Wednesday
+            daysUntilWednesday = 7
         }
-        nextWednesday.setHours(0, 0, 0, 0)
+
+        nextWednesday.setDate(nextWednesday.getDate() + daysUntilWednesday)
+        nextWednesday.setHours(15, 1, 0, 0) // 15:01
         return nextWednesday
     }
 
-    // Get current week start (last Wednesday)
+    // Get current week start (last Wednesday 15:01)
     const getCurrentWeekStart = () => {
-        const today = new Date()
-        const dayOfWeek = today.getDay()
-        const daysToWednesday = dayOfWeek >= 3 ? dayOfWeek - 3 : dayOfWeek + 4
-        const weekStart = new Date(today)
-        weekStart.setDate(today.getDate() - daysToWednesday)
-        weekStart.setHours(0, 0, 0, 0)
+        const now = new Date()
+        const dayOfWeek = now.getDay()
+        const currentHour = now.getHours()
+        const currentMinute = now.getMinutes()
+
+        let daysToLastWednesday
+
+        if (dayOfWeek === 3) { // Today is Wednesday
+            if (currentHour < 15 || (currentHour === 15 && currentMinute === 0)) {
+                // Before or exactly 15:00 - current week started last Wednesday
+                daysToLastWednesday = 7
+            } else {
+                // After 15:00 - current week started today
+                daysToLastWednesday = 0
+            }
+        } else if (dayOfWeek > 3) {
+            // Thursday to Saturday - days since Wednesday
+            daysToLastWednesday = dayOfWeek - 3
+        } else {
+            // Sunday to Tuesday - days since last Wednesday
+            daysToLastWednesday = dayOfWeek + 4
+        }
+
+        const weekStart = new Date(now)
+        weekStart.setDate(now.getDate() - daysToLastWednesday)
+        weekStart.setHours(15, 1, 0, 0) // 15:01
         return weekStart
     }
 
@@ -255,4 +289,5 @@ export const AdminProvider = ({ children }) => {
         </AdminContext.Provider>
     )
 }
+
 export default AdminProvider
