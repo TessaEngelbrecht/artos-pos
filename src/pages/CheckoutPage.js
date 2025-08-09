@@ -16,13 +16,13 @@ const CheckoutPage = () => {
             value: 'centurion',
             label: 'Centurion Golf Estate',
             address: 'John Vorster gate',
-            time: '14:00 - 14:30'
+            time: 'Fridays 14:00 - 14:30'
         },
         {
             value: 'doxa',
             label: 'Doxa Deo Midstream',
             address: 'Office',
-            time: '15:00 - 15:30'
+            time: 'Fridays 15:00 - 15:30'
         }
     ]
 
