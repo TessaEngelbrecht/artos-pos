@@ -15,14 +15,14 @@ const CheckoutPage = () => {
         {
             value: 'centurion',
             label: 'Centurion Golf Estate',
-            address: 'John Voster Gate',
-            time: 'Fridays 14:00-15:00'
+            address: 'John Vorster gate',
+            time: '14:00 - 14:30'
         },
         {
             value: 'doxa',
             label: 'Doxa Deo Midstream',
             address: 'Office',
-            time: 'Fridays 15:30-16:30'
+            time: '15:00 - 15:30'
         }
     ]
 
@@ -78,8 +78,8 @@ const CheckoutPage = () => {
                                     <label
                                         key={location.value}
                                         className={`block p-4 border-2 rounded-lg cursor-pointer transition-colors ${pickupLocation === location.value
-                                                ? 'border-primary bg-primary/5'
-                                                : 'border-gray-200 hover:border-primary/50'
+                                            ? 'border-primary bg-primary/5'
+                                            : 'border-gray-200 hover:border-primary/50'
                                             }`}
                                     >
                                         <input
