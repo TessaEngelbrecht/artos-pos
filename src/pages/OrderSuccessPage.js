@@ -71,7 +71,7 @@ const OrderSuccessPage = () => {
                                 <div>
                                     <p className="font-semibold">Pickup Time</p>
                                     <p className="text-gray-600 text-sm">
-                                        {orderData.pickup_location.includes('Centurion') ? 'Fridays 14:00-15:00' : 'Fridays 15:30-16:30'}
+                                        {orderData.pickup_location.includes('Centurion') ? 'Fridays 14:00 - 14:30' : 'Fridays 15:00 - 15:30'}
                                     </p>
                                 </div>
                             </div>
