@@ -55,12 +55,12 @@ export const AdminProvider = ({ children }) => {
         return data
     }
 
-    // Get orders for specific week (Wednesday 15:01 to next Wednesday 15:00)
+    // Get orders for specific week (Wednesday 16:01 to next Wednesday 16:00)
     const getWeeklyOrders = async (weekStart) => {
         const weekEnd = new Date(weekStart)
         weekEnd.setDate(weekEnd.getDate() + 7)
-        // Week ends at exactly 15:00:00 on the following Wednesday
-        weekEnd.setHours(15, 0, 0, 0)
+        // Week ends at exactly 16:00:00 on the following Wednesday
+        weekEnd.setHours(16, 0, 0, 0)
 
         const { data, error } = await supabase
             .from('orders')
@@ -72,8 +72,8 @@ export const AdminProvider = ({ children }) => {
           products(name, price, cost_price)
         )
       `)
-            .gt('order_date', weekStart.toISOString()) // After 15:00 previous Wednesday
-            .lte('order_date', weekEnd.toISOString()) // Up to and including 15:00 current Wednesday
+            .gt('order_date', weekStart.toISOString()) // After 16:00 previous Wednesday
+            .lte('order_date', weekEnd.toISOString()) // Up to and including 16:00 current Wednesday
             .order('order_date', { ascending: false })
 
         if (error) throw error
@@ -210,7 +210,7 @@ export const AdminProvider = ({ children }) => {
         return summary
     }
 
-    // Get next Wednesday 15:01 (start of next week)
+    // Get next Wednesday 16:01 (start of next week)
     const getNextWednesday = (date = new Date()) => {
         const nextWednesday = new Date(date)
         const day = nextWednesday.getDay()
@@ -219,14 +219,14 @@ export const AdminProvider = ({ children }) => {
         // Calculate days until next Wednesday
         let daysUntilWednesday = (3 - day + 7) % 7
 
-        // If it's Wednesday and before or exactly 15:00, we want this Wednesday at 15:01
-        // If it's Wednesday and after 15:00, we want next Wednesday at 15:01
+        // If it's Wednesday and before or exactly 16:00, we want this Wednesday at 16:01
+        // If it's Wednesday and after 16:00, we want next Wednesday at 16:01
         if (day === 3) { // It's Wednesday
-            if (hour < 15 || (hour === 15 && nextWednesday.getMinutes() === 0 && nextWednesday.getSeconds() === 0)) {
-                // Before or exactly 15:00 - use today
+            if (hour < 16 || (hour === 16 && nextWednesday.getMinutes() === 0 && nextWednesday.getSeconds() === 0)) {
+                // Before or exactly 16:00 - use today
                 daysUntilWednesday = 0
             } else {
-                // After 15:00 - use next Wednesday
+                // After 16:00 - use next Wednesday
                 daysUntilWednesday = 7
             }
         } else if (daysUntilWednesday === 0) {
@@ -235,11 +235,11 @@ export const AdminProvider = ({ children }) => {
         }
 
         nextWednesday.setDate(nextWednesday.getDate() + daysUntilWednesday)
-        nextWednesday.setHours(15, 1, 0, 0) // 15:01
+        nextWednesday.setHours(16, 1, 0, 0) // 16:01
         return nextWednesday
     }
 
-    // Get current week start (last Wednesday 15:01)
+    // Get current week start (last Wednesday 16:01)
     const getCurrentWeekStart = () => {
         const now = new Date()
         const dayOfWeek = now.getDay()
@@ -249,11 +249,11 @@ export const AdminProvider = ({ children }) => {
         let daysToLastWednesday
 
         if (dayOfWeek === 3) { // Today is Wednesday
-            if (currentHour < 15 || (currentHour === 15 && currentMinute === 0)) {
-                // Before or exactly 15:00 - current week started last Wednesday
+            if (currentHour < 16 || (currentHour === 16 && currentMinute === 0)) {
+                // Before or exactly 16:00 - current week started last Wednesday
                 daysToLastWednesday = 7
             } else {
-                // After 15:00 - current week started today
+                // After 16:00 - current week started today
                 daysToLastWednesday = 0
             }
         } else if (dayOfWeek > 3) {
@@ -266,7 +266,7 @@ export const AdminProvider = ({ children }) => {
 
         const weekStart = new Date(now)
         weekStart.setDate(now.getDate() - daysToLastWednesday)
-        weekStart.setHours(15, 1, 0, 0) // 15:01
+        weekStart.setHours(16, 1, 0, 0) // 16:01
         return weekStart
     }
 
