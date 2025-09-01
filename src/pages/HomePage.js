@@ -20,6 +20,7 @@ const HomePage = () => {
             const { data, error } = await supabase
                 .from('products')
                 .select('*')
+                .eq('is_visible', true)
                 .order('price')
             if (error) throw error
             setProducts(data)
