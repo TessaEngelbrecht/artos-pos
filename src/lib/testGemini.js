@@ -6,7 +6,7 @@ export const testGeminiAPI = async () => {
         //console.log('API Key:', process.env.REACT_APP_GEMINI_API_KEY ? 'Present' : 'Missing')
 
         const genAI = new GoogleGenerativeAI(process.env.REACT_APP_GEMINI_API_KEY)
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" })
 
         const result = await model.generateContent("Hello, can you respond with 'API working correctly'?")
         const response = await result.response

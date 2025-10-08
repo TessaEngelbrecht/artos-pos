@@ -11,8 +11,7 @@ const Footer = () => {
                     className="text-primary hover:underline"
                 >
                     tessa.engelbrecht@gmail.com
-                </a>{' '}
-                or <a href="tel:+27844060847" className="text-primary hover:underline">0844060847</a>.
+                </a>.
             </p>
         </footer>
     )

@@ -34,7 +34,7 @@ export const verifyPaymentProof = async (file, expectedAmount, expectedReference
         const mimeType = getMimeType(file)
 
         // Get Gemini model
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" })
 
         // Create the prompt for payment verification
         const prompt = `
