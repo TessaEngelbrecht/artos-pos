@@ -23,6 +23,12 @@ const CheckoutPage = () => {
             label: 'Doxa Deo Midstream',
             address: 'Office',
             time: 'Fridays 15:00 - 15:30'
+        },
+        {
+            value: 'waterkloof',
+            label: 'Waterkloof Ridge ',
+            address: '278 Rooiribbok Street',
+            time: 'Fridays 14:00 - 15:00'
         }
     ]
 

@@ -5,19 +5,36 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import Header from '../components/Layout/Header'
 import Footer from '../components/Layout/Footer'
 
+
 const OrderSuccessPage = () => {
     const location = useLocation()
     const navigate = useNavigate()
     const { orderId, orderData } = location.state || {}
+
 
     if (!orderId || !orderData) {
         navigate('/')
         return null
     }
 
+    // Helper function to get pickup time based on location
+    const getPickupTime = (pickupLocation) => {
+        if (pickupLocation.toLowerCase().includes('centurion')) {
+            return 'Fridays 14:00 - 14:30'
+        } else if (pickupLocation.toLowerCase().includes('doxa')) {
+            return 'Fridays 15:00 - 15:30'
+        } else if (pickupLocation.toLowerCase().includes('waterkloof')) {
+            return 'Fridays 14:00 - 15:00'
+        } else {
+            return 'Contact us for pickup time'
+        }
+    }
+
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex flex-col min-h-screen">
             <Header />
+
 
             <main className="container mx-auto px-4 py-16 flex-grow">
                 <motion.div
@@ -41,6 +58,7 @@ const OrderSuccessPage = () => {
                         </p>
                     </motion.div>
 
+
                     <motion.div
                         className="bg-white rounded-lg p-8 shadow-lg mb-8"
                         initial={{ opacity: 0, y: 20 }}
@@ -48,6 +66,7 @@ const OrderSuccessPage = () => {
                         transition={{ delay: 0.4 }}
                     >
                         <h2 className="text-2xl font-semibold mb-6">Order Details</h2>
+
 
                         <div className="space-y-4 text-left">
                             <div className="flex items-start space-x-3">
@@ -58,6 +77,7 @@ const OrderSuccessPage = () => {
                                 </div>
                             </div>
 
+
                             <div className="flex items-start space-x-3">
                                 <MapPin className="text-primary mt-1" size={20} />
                                 <div>
@@ -66,16 +86,18 @@ const OrderSuccessPage = () => {
                                 </div>
                             </div>
 
+
                             <div className="flex items-start space-x-3">
                                 <Calendar className="text-primary mt-1" size={20} />
                                 <div>
                                     <p className="font-semibold">Pickup Time</p>
                                     <p className="text-gray-600 text-sm">
-                                        {orderData.pickup_location.includes('Centurion') ? 'Fridays 14:00 - 14:30' : 'Fridays 15:00 - 15:30'}
+                                        {getPickupTime(orderData.pickup_location)}
                                     </p>
                                 </div>
                             </div>
                         </div>
+
 
                         <div className="border-t mt-6 pt-6">
                             <h3 className="font-semibold mb-4">Items Ordered</h3>
@@ -96,6 +118,7 @@ const OrderSuccessPage = () => {
                         </div>
                     </motion.div>
 
+
                     <motion.div
                         className="bg-amber-100 rounded-lg p-6 mb-8"
                         initial={{ opacity: 0, y: 20 }}
@@ -111,6 +134,7 @@ const OrderSuccessPage = () => {
                         </ul>
                     </motion.div>
 
+
                     <motion.button
                         onClick={() => navigate('/')}
                         className="bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-dark transition-colors"
@@ -125,5 +149,6 @@ const OrderSuccessPage = () => {
         </div>
     )
 }
+
 
 export default OrderSuccessPage
